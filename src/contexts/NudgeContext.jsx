@@ -27,6 +27,7 @@ export function NudgeProvider({ children }) {
   const [agentLog, setAgentLog] = useState([]);
   const [loading, setLoading] = useState(true);
   const [calendarLoading, setCalendarLoading] = useState(true);
+  const [calendarTimeZone, setCalendarTimeZone] = useState(null);
 
   // Real-time Firestore listener for tasks
   useEffect(() => {
@@ -101,6 +102,9 @@ export function NudgeProvider({ children }) {
 
         if (calRes.events) {
           setCalendarEvents(calRes.events);
+        }
+        if (calRes.timeZone) {
+          setCalendarTimeZone(calRes.timeZone);
         }
 
         if (gmailRes.items?.length > 0) {
@@ -367,6 +371,7 @@ export function NudgeProvider({ children }) {
     agentLog,
     loading,
     calendarLoading,
+    calendarTimeZone,
     addTask,
     updateTask,
     removeTask,

@@ -58,9 +58,22 @@ export default function CalendarView() {
     tasks: firestoreTasks,
     calendarEvents: rawCalendarEvents,
     calendarLoading,
+    calendarTimeZone,
     updateTask,
     updateCalendarEvent,
   } = useNudge();
+  
+  const browserTimeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
+  
+  const hasTimezoneMismatch = useMemo(() => {
+    if (!calendarTimeZone) return false;
+    const norm = (tz) => tz.toLowerCase().replace(/_/g, '/');
+    const calTz = norm(calendarTimeZone);
+    const localTz = norm(browserTimeZone);
+    if (calTz === localTz) return false;
+    if ((calTz === 'utc' || calTz === 'gmt') && (localTz === 'etc/utc' || localTz === 'etc/gmt')) return false;
+    return true;
+  }, [calendarTimeZone, browserTimeZone]);
   const { isDemoMode } = useAuth();
   const gridRef = useRef(null);
   const [weekOffset, setWeekOffset] = useState(0);
@@ -381,6 +394,28 @@ export default function CalendarView() {
         </div>
       </div>
 
+      {/* Timezone Warning Banner */}
+      {hasTimezoneMismatch && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.625rem',
+          background: 'rgba(245, 166, 35, 0.12)',
+          border: '1px solid rgba(245, 166, 35, 0.3)',
+          borderRadius: 'var(--radius-md)',
+          padding: '0.625rem 0.875rem',
+          marginBottom: '0.75rem',
+          fontSize: '0.75rem',
+          color: 'var(--color-text-primary)',
+          flexShrink: 0,
+        }}>
+          <span style={{ fontSize: '1rem' }}>⚠️</span>
+          <div>
+            <strong>Timezone Mismatch:</strong> Your Google Calendar is set to <strong>{calendarTimeZone}</strong>, but your computer is in <strong>{browserTimeZone}</strong>. Events are shown converted to your local time. To match them exactly, change your Google Calendar settings to <strong>{browserTimeZone}</strong>.
+          </div>
+        </div>
+      )}
+
       {/* Column headers (days) */}
       <div className="gcal-week-header">
         <div className="gcal-week-gutter" />
@@ -471,12 +506,9 @@ export default function CalendarView() {
                       const colors = getEventColor(block);
 
                       return (
-                        <motion.div
+                        <div
                           key={block.id}
                           className="gcal-event-block"
-                          initial={{ opacity: 0, scale: 0.96 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          whileHover={{ scale: 1.02, zIndex: 20 }}
                           draggable={true}
                           onDragStart={(e) => handleDragStart(e, block, dayKey)}
                           onDragEnd={handleDragEnd}
@@ -493,6 +525,7 @@ export default function CalendarView() {
                             padding: '2px 4px',
                             lineHeight: 1.3,
                             opacity: dragState?.taskId === block.id ? 0.4 : 1,
+                            transition: 'all 0.15s ease',
                           }}
                           title={`${block.title}\n${formatBlockTime(block.start, block.end)}`}
                         >
@@ -504,7 +537,7 @@ export default function CalendarView() {
                               {formatBlockTime(block.start, block.end)}
                             </div>
                           )}
-                        </motion.div>
+                        </div>
                       );
                     })}
                     
