@@ -82,7 +82,7 @@ export function AuthProvider({ children }) {
       setIsNewUser(isNew);
       
       // If it's a new user and we have their Google token, send welcome email
-      if (isNew && credential?.oauthAccessToken) {
+      if (isNew && token) {
         api.request('/api/auth/welcome', {
           method: 'POST',
           body: JSON.stringify({
