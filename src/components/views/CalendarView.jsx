@@ -67,11 +67,22 @@ export default function CalendarView() {
   
   const hasTimezoneMismatch = useMemo(() => {
     if (!calendarTimeZone) return false;
-    const norm = (tz) => tz.toLowerCase().replace(/_/g, '/');
+    const norm = (tz) => tz.toLowerCase().replace(/_/g, '/').replace('etc/', '');
     const calTz = norm(calendarTimeZone);
     const localTz = norm(browserTimeZone);
     if (calTz === localTz) return false;
-    if ((calTz === 'utc' || calTz === 'gmt') && (localTz === 'etc/utc' || localTz === 'etc/gmt')) return false;
+    if ((calTz === 'utc' || calTz === 'gmt') && (localTz === 'utc' || localTz === 'gmt')) return false;
+    if ((calTz === 'asia/kolkata' && localTz === 'asia/calcutta') || 
+        (calTz === 'asia/calcutta' && localTz === 'asia/kolkata')) return false;
+        
+    // Dynamic offset check
+    try {
+      const d = new Date(2026, 0, 1);
+      const options1 = d.toLocaleString('en-US', { timeZone: calendarTimeZone, timeZoneName: 'longOffset' });
+      const options2 = d.toLocaleString('en-US', { timeZone: browserTimeZone, timeZoneName: 'longOffset' });
+      if (options1.split(' ').pop() === options2.split(' ').pop()) return false;
+    } catch {}
+    
     return true;
   }, [calendarTimeZone, browserTimeZone]);
   const { isDemoMode } = useAuth();
