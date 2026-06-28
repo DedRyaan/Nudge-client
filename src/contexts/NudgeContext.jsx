@@ -20,7 +20,7 @@ import { demoTasks, demoTriageItems, demoCalendarEvents } from '../utils/demoDat
 const NudgeContext = createContext(null);
 
 export function NudgeProvider({ children }) {
-  const { user, isDemoMode, accessToken } = useAuth();
+  const { user, isDemoMode, accessToken, logout } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [triageItems, setTriageItems] = useState([]);
@@ -116,6 +116,10 @@ export function NudgeProvider({ children }) {
         }
       } catch (err) {
         console.error('Failed to fetch Google data:', err);
+        if (err.status === 401) {
+          console.warn('Google credentials expired or unauthorized. Logging out.');
+          logout();
+        }
       } finally {
         setCalendarLoading(false);
       }

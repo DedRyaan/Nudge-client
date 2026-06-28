@@ -13,7 +13,7 @@ class ApiService {
     // Ensure we re-register the token if the socket reconnects
     socket.on('connect', () => {
       if (this.googleToken) {
-        socket.emit('register_google_token', { googleToken: this.googleToken });
+        socket.emit('register_google_token', { googleToken: this.googleToken, userId: this.userId });
       }
     });
   }
@@ -52,7 +52,10 @@ class ApiService {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: response.statusText }));
-      throw new Error(error.message || 'Request failed');
+      const msg = error.error || error.message || `Request failed with status ${response.status}`;
+      const err = new Error(msg);
+      err.status = response.status;
+      throw err;
     }
 
     return response.json();
