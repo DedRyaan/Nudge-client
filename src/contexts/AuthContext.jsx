@@ -3,7 +3,8 @@ import {
   signInWithPopup, 
   signOut, 
   onAuthStateChanged,
-  getAdditionalUserInfo
+  getAdditionalUserInfo,
+  GoogleAuthProvider
 } from 'firebase/auth';
 import { auth, googleProvider } from '../services/firebase';
 import { api } from '../services/api';
@@ -68,12 +69,13 @@ export function AuthProvider({ children }) {
       const result = await signInWithPopup(auth, googleProvider);
       const additionalInfo = getAdditionalUserInfo(result);
       
-      // Extract the OAuth access token for Google Calendar API
-      const credential = result._tokenResponse;
-      if (credential?.oauthAccessToken) {
-        setAccessToken(credential.oauthAccessToken);
-        api.setGoogleToken(credential.oauthAccessToken);
-        localStorage.setItem('nudge-google-token', credential.oauthAccessToken);
+      // Extract the OAuth access token for Google Calendar API in a standard way
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential?.accessToken;
+      if (token) {
+        setAccessToken(token);
+        api.setGoogleToken(token);
+        localStorage.setItem('nudge-google-token', token);
       }
       
       const isNew = additionalInfo?.isNewUser || false;
