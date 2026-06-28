@@ -126,8 +126,28 @@ export function NudgeProvider({ children }) {
     window.addEventListener('focus', handleFocus);
 
     // Real-time socket sync
-    const handleSocketSync = () => {
-      fetchGoogleData(true);
+    const handleSocketSync = (data) => {
+      console.log('[Socket] Calendar update received:', data);
+      if (data?.updatedEvents) {
+        setCalendarEvents(prev => {
+          let updatedList = [...prev];
+          data.updatedEvents.forEach(evt => {
+            if (evt.status === 'cancelled') {
+              updatedList = updatedList.filter(item => item.id !== evt.id);
+            } else {
+              const index = updatedList.findIndex(item => item.id === evt.id);
+              if (index > -1) {
+                updatedList[index] = evt;
+              } else {
+                updatedList.push(evt);
+              }
+            }
+          });
+          return updatedList;
+        });
+      } else {
+        fetchGoogleData(true);
+      }
     };
     socket.on('CALENDAR_UPDATED', handleSocketSync);
     
