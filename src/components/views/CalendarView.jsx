@@ -559,7 +559,8 @@ export default function CalendarView() {
                           lineHeight: 1.3,
                           zIndex: 30,
                           boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                          cursor: 'grabbing'
+                          cursor: 'grabbing',
+                          pointerEvents: 'none'
                         }}
                       >
                         <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

@@ -39,7 +39,7 @@ export function AuthProvider({ children }) {
             const storedGoogleToken = localStorage.getItem('nudge-google-token');
             if (storedGoogleToken) {
               setAccessToken(storedGoogleToken);
-              api.setGoogleToken(storedGoogleToken);
+              api.setGoogleToken(storedGoogleToken, firebaseUser.uid);
             }
           } catch (e) {
             // Token fetch might fail in demo mode
@@ -74,7 +74,7 @@ export function AuthProvider({ children }) {
       const token = credential?.accessToken;
       if (token) {
         setAccessToken(token);
-        api.setGoogleToken(token);
+        api.setGoogleToken(token, result.user.uid);
         localStorage.setItem('nudge-google-token', token);
       }
       

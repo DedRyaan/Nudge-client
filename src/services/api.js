@@ -22,10 +22,11 @@ class ApiService {
     this.token = token;
   }
 
-  setGoogleToken(token) {
+  setGoogleToken(token, userId) {
     this.googleToken = token;
+    this.userId = userId || this.userId;
     if (token) {
-      socket.emit('register_google_token', { googleToken: token });
+      socket.emit('register_google_token', { googleToken: token, userId: this.userId });
     }
   }
 
