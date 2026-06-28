@@ -22,7 +22,7 @@ export default function TriagePanel() {
   const { triageItems, acceptTriageItem, dismissTriageItem } = useNudge();
   const { isDemoMode } = useAuth();
   
-  const items = isDemoMode && triageItems.length === 0 ? demoTriageItems : triageItems;
+  const items = triageItems;
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: '700px' }}>

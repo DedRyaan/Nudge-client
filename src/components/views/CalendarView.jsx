@@ -66,15 +66,21 @@ export default function CalendarView() {
   const browserTimeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
   
   const hasTimezoneMismatch = useMemo(() => {
-    if (!calendarTimeZone || !browserTimeZone) return false;
-    if (calendarTimeZone === browserTimeZone) return false;
-    
-    // Instead of parsing long offsets which vary by browser, compare the actual current formatted time
+    if (!calendarTimeZone) return false;
+    const norm = (tz) => tz.toLowerCase().replace(/_/g, '/').replace('etc/', '');
+    const calTz = norm(calendarTimeZone);
+    const localTz = norm(browserTimeZone);
+    if (calTz === localTz) return false;
+    if ((calTz === 'utc' || calTz === 'gmt') && (localTz === 'utc' || localTz === 'gmt')) return false;
+    if ((calTz === 'asia/kolkata' && localTz === 'asia/calcutta') || 
+        (calTz === 'asia/calcutta' && localTz === 'asia/kolkata')) return false;
+        
+    // Dynamic offset check
     try {
-      const d = new Date();
-      const f1 = new Intl.DateTimeFormat('en-US', { timeZone: calendarTimeZone, timeStyle: 'short' }).format(d);
-      const f2 = new Intl.DateTimeFormat('en-US', { timeZone: browserTimeZone, timeStyle: 'short' }).format(d);
-      if (f1 === f2) return false;
+      const d = new Date(2026, 0, 1);
+      const options1 = d.toLocaleString('en-US', { timeZone: calendarTimeZone, timeZoneName: 'longOffset' });
+      const options2 = d.toLocaleString('en-US', { timeZone: browserTimeZone, timeZoneName: 'longOffset' });
+      if (options1.split(' ').pop() === options2.split(' ').pop()) return false;
     } catch {}
     
     return true;
@@ -286,7 +292,6 @@ export default function CalendarView() {
               source: event.source || 'google',
               type: event.type || 'event',
               isTask: false,
-              isAllDay: event.isAllDay,
             });
           }
         } catch {}
@@ -507,8 +512,8 @@ export default function CalendarView() {
                     onClick={(e) => handleGridClick(e, dayKey)}
                   >
                     {dayBlocks.map((block) => {
-                      const top = block.isAllDay ? 0 : getTopPx(block.start);
-                      const height = block.isAllDay ? 24 : getHeightPx(block.start, block.end);
+                      const top = getTopPx(block.start);
+                      const height = getHeightPx(block.start, block.end);
                       const colors = getEventColor(block);
 
                       return (
@@ -531,7 +536,6 @@ export default function CalendarView() {
                             padding: '2px 4px',
                             lineHeight: 1.3,
                             opacity: dragState?.taskId === block.id ? 0.4 : 1,
-                            pointerEvents: dragState?.taskId === block.id ? 'none' : 'auto',
                             transition: 'all 0.15s ease',
                           }}
                           title={`${block.title}\n${formatBlockTime(block.start, block.end)}`}

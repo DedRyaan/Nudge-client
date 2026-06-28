@@ -118,6 +118,11 @@ export function detectConflicts(events) {
         conflicts.push({
           events: [eventA, eventB],
           overlapMinutes: differenceInMinutes(aEnd, bStart),
+          suggestions: [
+            { label: `Move "${eventA.title || 'Event'}" to ${formatTime(aEnd)}` },
+            { label: `Shorten "${eventB.title || 'Event'}" by ${differenceInMinutes(aEnd, bStart)} mins` },
+            { label: 'Keep both, I\'ll manage' }
+          ]
         });
       }
     }

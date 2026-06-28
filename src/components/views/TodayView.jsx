@@ -12,7 +12,7 @@ import {
   getTimelineHours, getUrgencyLevel, getTaskSummary,
   detectConflicts, isUrgent
 } from '../../utils/helpers';
-import { demoCalendarEvents, demoTasks, demoConflicts } from '../../utils/demoData';
+import { demoCalendarEvents, demoTasks } from '../../utils/demoData';
 import ConflictCard from '../calendar/ConflictCard';
 import AddTaskModal from '../tasks/AddTaskModal';
 import { useAuth } from '../../contexts/AuthContext';
@@ -46,7 +46,6 @@ export default function TodayView() {
 
   const tasks = isDemoMode && firestoreTasks.length === 0 ? demoTasks : firestoreTasks;
   const events = isDemoMode && rawCalendarEvents.length === 0 ? demoCalendarEvents : rawCalendarEvents;
-  const conflicts = demoConflicts;
 
   const hours = getTimelineHours();
   const currentHour = new Date().getHours();
@@ -68,7 +67,13 @@ export default function TodayView() {
         
         const hour = date.getHours();
         if (!grouped[hour]) grouped[hour] = [];
-        grouped[hour].push(event);
+        
+        // Normalize event object for conflict detection
+        grouped[hour].push({
+          ...event,
+          start: startStr,
+          end: event.end?.dateTime || event.end?.date || event.end
+        });
       } catch (err) {
         console.error('Failed to parse event start date:', err);
       }
@@ -101,6 +106,25 @@ export default function TodayView() {
     
     return grouped;
   }, [events, tasks]);
+
+  const conflicts = useMemo(() => {
+    const list = [];
+    Object.values(eventsByHour).forEach(hrEvents => {
+      list.push(...hrEvents);
+    });
+    
+    // Deduplicate by ID
+    const unique = [];
+    const seen = new Set();
+    list.forEach(e => {
+      if (!seen.has(e.id)) {
+        seen.add(e.id);
+        unique.push(e);
+      }
+    });
+    
+    return detectConflicts(unique);
+  }, [eventsByHour]);
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: '900px' }}>

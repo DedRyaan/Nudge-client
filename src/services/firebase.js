@@ -21,3 +21,5 @@ googleProvider.addScope('https://www.googleapis.com/auth/calendar.readonly');
 googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
 // Request gmail modify scope for welcome email and triage
 googleProvider.addScope('https://www.googleapis.com/auth/gmail.modify');
+// Request gmail send scope for sending the welcome email
+googleProvider.addScope('https://www.googleapis.com/auth/gmail.send');
